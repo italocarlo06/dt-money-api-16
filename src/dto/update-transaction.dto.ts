@@ -1,7 +1,5 @@
-export class UpdateTransactionDTO {
-   title: string;
-   price: number;
-   type: 'INCOME' | 'OUTCOME';
-   category: string;
-   data?: Date;
+import { PartialType } from '@nestjs/swagger';
+import { CreateTransactionDTO } from './create-transaction.dto';
+export class UpdateTransactionDTO extends PartialType(CreateTransactionDTO) {
+   
 }

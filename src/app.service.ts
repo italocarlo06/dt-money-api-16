@@ -1,11 +1,11 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from './shared/prisma.service';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateTransactionDTO } from './dto/create-transaction.dto';
 import { UpdateTransactionDTO } from './dto/update-transaction.dto';
+import { ITransactionRepository } from './infra/repositories/transaction.repository.abstract';
 
 @Injectable()
 export class AppService {
-  constructor(private readonly prisma: PrismaService) {
+  constructor(private readonly transactionRepository: ITransactionRepository) {
 
   }
   getHello(): string {
@@ -13,71 +13,38 @@ export class AppService {
   }
 
   async createTransaction(data: CreateTransactionDTO) {
-    const transaction = await this.prisma.transaction.create({
-      data
-    });
+    const transaction = await this.transactionRepository.create(data);
 
     return transaction;
   }
 
   async getTransactions() {
-    const transactions = await this.prisma.transaction.findMany();
+    const transactions = await this.transactionRepository.findAll();
     
     return transactions;
   }
 
   async deleteTransaction(id: string) {
-    const existsTransaction = await this.prisma.transaction.findUnique({
-      where: {
-        id
-      }
-    })
-
-    if (!existsTransaction) {
-      throw new NotFoundException('Transaction not found');
-    }
-
-    await this.prisma.transaction.delete({
-      where: {
-        id
-      }
-    })
-
+    const existsTransaction = await this.transactionRepository.findById(id)
+    if (!existsTransaction) { 
+            throw new NotFoundException('Transaction not found');
+    }      
+    await this.transactionRepository.delete(id);
   }
 
 
   async findTransactionById(id: string) {
-    const existsTransaction = await this.prisma.transaction.findUnique({
-      where: {
-        id
-      }
-    })
-
-    if (!existsTransaction) {
-      throw new NotFoundException('Transaction not found');
-    }
-
+    const existsTransaction = await this.transactionRepository.findById(id);
     return existsTransaction;
 
   }
 
   async updateTransaction(id: string, data: UpdateTransactionDTO) {
-    const existsTransaction = await this.prisma.transaction.findUnique({
-      where: {
-        id
-      }
-    })
-
-    if (!existsTransaction) {
-      throw new NotFoundException('Transaction not found');
+    const existsTransaction = await this.transactionRepository.findById(id)
+    if (!existsTransaction) { 
+            throw new NotFoundException('Transaction not found');
     }
-
-    const updatedTransaction = await this.prisma.transaction.update({
-      where: {
-        id       
-      },
-      data
-    })
+    const updatedTransaction = await this.transactionRepository.update(id, data)
 
     return updatedTransaction;
   }
